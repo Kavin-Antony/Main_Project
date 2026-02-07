@@ -17,9 +17,3 @@ class IPCameraController:
             "response": r.text[:120]
         }
 
-
-# Example standalone usage
-if __name__ == "__main__":
-    cam = IPCameraController("192.0.0.4")
-    result = cam.set_resolution(1280, 720)
-    print(result)

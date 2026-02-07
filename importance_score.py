@@ -19,15 +19,11 @@ class ImportanceScorer:
 
         img = cv2.imread(self.frame_path)
         if img is None:
-            return 0.0
-
-        results = self.model(img, verbose=False)[0]
+            return None
+        small = cv2.resize(img, (640, 480))
+        results = self.model(small, verbose=False)[0]
         score = self.compute_score(results.boxes)
 
         return score
 
 
-# Example standalone usage
-if __name__ == "__main__":
-    scorer = ImportanceScorer("yolov8n.pt")
-    print("Importance Score:", scorer.get_score())
