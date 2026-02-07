@@ -1,0 +1,4 @@
+High Activity      → 1920×1080
+Normal Activity    → 1280×720
+Low Activity       → 640×480
+Idle / Congested   → 320×240
