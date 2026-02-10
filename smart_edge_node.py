@@ -125,8 +125,8 @@ class VisualEdgeNode:
 # =====================================================
 if __name__ == "__main__":
 
-    STREAM = "http://192.0.0.4:8080/video"
-    CAM_IP = "192.0.0.4"
+    STREAM = "http://10.63.44.210:8081/video"
+    CAM_IP = "10.63.44.210"
 
     node = VisualEdgeNode(STREAM, CAM_IP)
     node.run()

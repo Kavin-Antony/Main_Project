@@ -2,7 +2,7 @@ import requests
 
 
 class IPCameraController:
-    def __init__(self, ip: str, port: int = 8080):
+    def __init__(self, ip: str, port: int = 8081):
         self.base_url = f"http://{ip}:{port}"
 
     def set_resolution(self, width: int, height: int):
