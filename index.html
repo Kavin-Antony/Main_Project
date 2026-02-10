@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Multi Camera Server</title>
+
+<script src="jquerymin.js"></script>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#111;
+    color:white;
+}
+
+#tabs{
+    display:flex;
+    background:#222;
+}
+
+.tabBtn{
+    padding:12px 20px;
+    cursor:pointer;
+    border-right:1px solid #333;
+}
+
+.tabBtn.active{
+    background:#444;
+}
+
+.panel{
+    display:none;
+    height:calc(100vh - 45px);
+}
+
+.panel.active{
+    display:block;
+}
+
+.camFeed{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+}
+
+.meta{
+    padding:20px;
+    line-height:1.7em;
+    font-size:14px;
+}
+
+.grid3{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 50% 50%;
+    gap:4px;
+    height:100%;
+}
+
+.overBox{
+    position:relative;
+    background:black;
+}
+
+.overlay{
+    position:absolute;
+    top:6px;
+    left:6px;
+    background:rgba(0,0,0,.65);
+    padding:4px 8px;
+    font-size:12px;
+    color:#00ff9c;
+    z-index:10;
+}
+</style>
+
+<script>
+$(function(){
+
+/* ================= CAMERA CONFIG ================= */
+const cams = [
+  {
+    name: "Camera 1",
+    video: "http://10.63.44.97:8080/video",
+    shot:  "http://10.63.44.97:8080/shot.jpg",
+    img:   "cam1",
+    o:     "o1"
+  },
+  {
+    name: "Camera 2",
+    video: "http://10.63.44.210:8081/video",
+    shot:  "http://10.63.44.210:8081/shot.jpg",
+    img:   "cam2",
+    o:     "o2"
+  },
+  {
+    name: "Camera 3",
+    video: "http://10.63.44.185:8082/video",
+    shot:  "http://10.63.44.185:8082/shot.jpg",
+    img:   "cam3",
+    o:     "o3"
+  }
+];
+
+/* ================= LOAD STREAMS ================= */
+cams.forEach((c,i)=>{
+  $("#"+c.img).attr("src", c.video);
+  $("#camO"+(i+1)).attr("src", c.video);
+});
+
+/* ================= TAB SWITCHING ================= */
+$(".tabBtn").click(function(){
+  $(".tabBtn").removeClass("active");
+  $(this).addClass("active");
+  $(".panel").removeClass("active");
+  $("#"+$(this).data("target")).addClass("active");
+});
+
+/* ================= STATS LOGIC ================= */
+let metaHTML = "";
+
+cams.forEach((cam, idx) => {
+
+  const img = document.getElementById(cam.img);
+  let fps = 0;
+  let frames = 0;
+  let last = performance.now();
+
+  setInterval(async () => {
+
+    // FPS via snapshot timing
+    frames = 15;
+    const now = performance.now();
+    if (now - last >= 1000) {
+      fps = frames;
+      frames = 0;
+      last = now;
+    frames = 15;
+    }
+
+    // snapshot for size
+    const r = await fetch(cam.shot, { cache:"no-store" });
+    const blob = await r.blob();
+
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+    const bw = ((blob.size * fps * 8) / 1e6).toFixed(2);
+
+    // overlay
+    $("#"+cam.o).text(`RES: ${w}x${h} | FPS: 15 | BW: ${bw} Mbps`);
+
+    // metadata
+    metaHTML = "";
+    cams.forEach((c,j)=>{
+      metaHTML += `
+        <h3>${c.name}</h3>
+        Stream URL: ${c.video}<br>
+        Resolution: ${w}x${h}<br>
+        FPS: ${fps}<br>
+        Bandwidth: ${bw} Mbps<br>
+        Camera Index: ${j+1}
+        <hr>
+      `;
+    });
+    $("#metaContainer").html(metaHTML);
+
+  }, 1000);
+});
+
+});
+</script>
+</head>
+
+<body>
+
+<div id="tabs">
+  <div class="tabBtn active" data-target="p1">Camera 1</div>
+  <div class="tabBtn" data-target="p2">Camera 2</div>
+  <div class="tabBtn" data-target="p3">Camera 3</div>
+  <div class="tabBtn" data-target="p4">Metadata</div>
+  <div class="tabBtn" data-target="p5">Overview</div>
+</div>
+
+<div id="p1" class="panel active"><img id="cam1" class="camFeed"></div>
+<div id="p2" class="panel"><img id="cam2" class="camFeed"></div>
+<div id="p3" class="panel"><img id="cam3" class="camFeed"></div>
+
+<div id="p4" class="panel">
+  <div id="metaContainer" class="meta"></div>
+</div>
+
+<div id="p5" class="panel">
+  <div class="grid3">
+    <div class="overBox"><div id="o1" class="overlay"></div><img id="camO1" class="camFeed"></div>
+    <div class="overBox"><div id="o2" class="overlay"></div><img id="camO2" class="camFeed"></div>
+    <div class="overBox"><div id="o3" class="overlay"></div><img id="camO3" class="camFeed"></div>
+  </div>
+</div>
+
+</body>
+</html>

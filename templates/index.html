@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<form method="POST">
+Cam1: <input name="cam1"><br>
+Cam2: <input name="cam2"><br>
+Cam3: <input name="cam3"><br>
+<button type="submit">Load</button>
+</form>
+
+<hr>
+
+<h3>Camera 1</h3>
+<img id="img1" src="/video/cam1" style="width:1155px;">
+<button onclick="fetch('/record/cam1')">Toggle Rec</button>
+
+<h3>Camera 2</h3>
+<img src="/video/cam2" style="width:1155px;">
+<button onclick="fetch('/record/cam2')">Toggle Rec</button>
+
+<h3>Camera 3</h3>
+<img src="/video/cam3" style="width:1155px;">
+<button onclick="fetch('/record/cam3')">Toggle Rec</button>
+
+</body>
+</html>
