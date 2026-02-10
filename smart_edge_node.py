@@ -19,7 +19,7 @@ class VisualEdgeNode:
         self.camera = IPCameraController(cam_ip)
         self.extractor = FrameExtractor(stream_url)
         self.scorer = ImportanceScorer("yolov8n-face.pt")
-
+        self.current_quality = 20
         # live capture for display
         self.cap = cv2.VideoCapture(stream_url)
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
@@ -37,18 +37,40 @@ class VisualEdgeNode:
     # --------------------------------------------------
     def adaptive_resolution(self):
 
-        if self.score > 0.7:
-            target = (1440,1080)
-        elif self.score > 0.5:
-            target = (960,720)
-        elif self.score > 0.3:
-            target = (640,480)
+        # -----------------------
+        # Resolution logic
+        # -----------------------
+        if self.score >= 0.5:
+            target_res = (1920, 1080)
         else:
-            target = (320,240)
+            target_res = (1280, 720)
 
-        if target != self.current_res:
-            self.camera.set_resolution(target[0], target[1])
-            self.current_res = target
+        if target_res != self.current_res:
+            old_res = self.current_res
+            self.camera.set_resolution(target_res[0], target_res[1])
+            self.current_res = target_res
+            print(f"[ADAPT] Resolution changed: {old_res} -> {target_res} | score={self.score:.2f}")
+
+        # -----------------------
+        # Quality logic
+        # -----------------------
+        if self.score >= 0.8:
+            target_quality = 50
+        elif self.score >= 0.6:
+            target_quality = 40
+        elif self.score >= 0.4:
+            target_quality = 30
+        else:
+            target_quality = 20
+
+        # Hard clamp (because entropy)
+        target_quality = max(20, min(50, target_quality))
+
+        if target_quality != self.current_quality:
+            old_q = self.current_quality
+            self.camera.set_quality(target_quality)
+            self.current_quality = target_quality
+            print(f"[ADAPT] Quality changed: {old_q} -> {target_quality} | score={self.score:.2f}")
 
     # --------------------------------------------------
     def run(self):
@@ -125,8 +147,8 @@ class VisualEdgeNode:
 # =====================================================
 if __name__ == "__main__":
 
-    STREAM = "http://10.63.44.210:8081/video"
-    CAM_IP = "10.63.44.210"
+    STREAM = "http://10.63.44.97:8080/video"
+    CAM_IP = "10.63.44.97"
 
     node = VisualEdgeNode(STREAM, CAM_IP)
     node.run()
